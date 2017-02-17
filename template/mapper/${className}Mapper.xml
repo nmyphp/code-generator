@@ -1,0 +1,173 @@
+<#include "/macro.include"/>
+<#assign className = table.className>
+<#assign classNameFirstLower = table.classNameFirstLower>   
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+"http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<#macro mapperEl value>${r"#{"}${value}}</#macro>
+<#macro
+namespace>${className}.</#macro>
+
+<mapper namespace="${basepackage}.dto.${className}">
+	<!-- dto映射 -->
+	<resultMap id="RM_${className}" type="${basepackage}.dto.${className}">
+		<#list table.columns as column>
+		<#if column.isDateTimeColumn>
+		<result property="${column.columnNameLower}" column="${column.sqlName}"
+			jdbcType="TIMESTAMP" />
+		<#else>
+		<result property="${column.columnNameLower}" column="${column.sqlName}"
+			jdbcType="${column.jdbcType}" />
+		</#if>
+		</#list>
+	</resultMap>
+	<!-- 用于select查询公用抽取的列 -->
+	<sql id="columns">
+	    <![CDATA[
+		<#list table.columns as column>${column.sqlName}<#if column_has_next>,</#if></#list>
+	    ]]>
+	</sql>
+	<!-- 插入 -->
+	<insert id="insert" useGeneratedKeys="true"
+		keyProperty="${table.idColumn.columnNameFirstLower}">
+		INSERT INTO ${table.sqlName}
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<#list table.columns as column>
+			<#if column.isDateTimeColumn>
+			<if test="${column.columnNameFirstLower} != null">
+				${column.sqlName} <#if column_has_next>,</#if>
+			</if>
+			</#if>
+			<#if column.isNumberColumn>
+			<if test="${column.columnNameFirstLower} != null">
+				${column.sqlName} <#if column_has_next>,</#if>
+			</if>
+			</#if>
+			<#if column.isStringColumn>
+			<if
+				test="${column.columnNameFirstLower} != null and ${column.columnNameFirstLower} != ''">
+				${column.sqlName} <#if column_has_next>,</#if>
+			</if>
+			</#if>
+			</#list>
+		</trim>
+		<trim prefix="VALUES (" suffix=")" suffixOverrides=",">
+			<#list table.columns as column>
+			<#if column.isDateTimeColumn>
+			<if test="${column.columnNameFirstLower} != null">
+				<@mapperEl column.columnNameFirstLower+",jdbcType=TIMESTAMP"/> <#if
+				column_has_next>,</#if>
+			</if>
+			</#if>
+			<#if column.isNumberColumn>
+			<if test="${column.columnNameFirstLower} != null">
+				<@mapperEl column.columnNameFirstLower+",jdbcType="+column.jdbcType/> <#if
+				column_has_next>,</#if>
+			</if>
+			</#if>
+			<#if column.isStringColumn>
+			<if
+				test="${column.columnNameFirstLower} != null and ${column.columnNameFirstLower} != ''">
+				<@mapperEl column.columnNameFirstLower+",jdbcType="+column.jdbcType/> <#if
+				column_has_next>,</#if>
+			</if>
+			</#if>
+			</#list>
+		</trim>
+	</insert>
+	
+	<sql id="update_sql">
+		<set>
+			<#list table.notPkColumns as column>
+			<#if column.isDateTimeColumn>
+			<if test="${column.columnNameFirstLower} != null">
+				${column.sqlName} = <@mapperEl column.columnNameFirstLower+",jdbcType=TIMESTAMP"/>
+				<#if column_has_next>,</#if>
+			</if>
+			</#if>
+			<#if column.isNumberColumn>
+			<if test="${column.columnNameFirstLower} != null">
+				${column.sqlName} = <@mapperEl
+				column.columnNameFirstLower+",jdbcType="+column.jdbcType/> <#if
+				column_has_next>,</#if>
+			</if>
+			</#if>
+			<#if column.isStringColumn>
+			<if
+				test="${column.columnNameFirstLower} != null and ${column.columnNameFirstLower} != ''">
+				${column.sqlName} = <@mapperEl
+				column.columnNameFirstLower+",jdbcType="+column.jdbcType/> <#if
+				column_has_next>,</#if>
+			</if>
+			</#if>
+			</#list>
+		</set>
+	</sql>
+	<!-- 更新 -->
+	<update id="update">
+		UPDATE ${table.sqlName}
+		<include refid="update_sql" />
+		WHERE
+		<#list table.compositeIdColumns as column>
+		${column.sqlName} = <@mapperEl column.columnNameLower/> <#if column_has_next> AND
+		</#if>
+		</#list>
+	</update>
+	<!-- 根据主键查询 -->
+	<select id="findByPk" resultMap="RM_${className}">
+		SELECT
+		<include refid="columns" />
+	    <![CDATA[
+		    FROM ${table.sqlName} 
+	        WHERE 
+				<#list table.compositeIdColumns as column>
+		        ${column.sqlName} = <@mapperEl 'id'/> <#if column_has_next> AND </#if>
+		        </#list>    
+	    ]]>
+	</select>
+	<!-- 条件查询 -->
+	<sql id="findByCondition_where">
+		<where>
+			<#list table.columns as column>
+			<#if column.isDateTimeColumn>
+			<if test="${column.columnNameFirstLower}Begin != null">
+				AND ${column.sqlName} >= <@mapperEl
+				column.columnNameFirstLower+"Begin"+",jdbcType=TIMESTAMP"/>
+			</if>
+			<if test="${column.columnNameFirstLower}End != null">
+				AND ${column.sqlName} &lt;= <@mapperEl
+				column.columnNameFirstLower+"End"+",jdbcType=TIMESTAMP"/>
+			</if>
+			<#else>
+			<#if column.isNumberColumn>
+			<if test="${column.columnNameFirstLower} != null">
+				AND ${column.sqlName} = <@mapperEl
+				column.columnNameFirstLower+",jdbcType="+column.jdbcType/>
+			</if>
+			</#if>
+			<#if column.isStringColumn>
+			<if test="${column.columnNameFirstLower} != null and ${column.columnNameFirstLower} !=''">
+				AND ${column.sqlName} = <@mapperEl
+				column.columnNameFirstLower+",jdbcType="+column.jdbcType/>
+			</if>
+			</#if>
+			</#if>
+			</#list>
+		</where>
+	</sql>
+	<!-- 根据条件COUNT -->
+	<select id="findByCondition_count" resultType="long">
+		SELECT count(1) FROM ${table.sqlName}
+		<include refid="findByCondition_where" />
+	</select>
+	<!-- 根据条件查询 -->
+	<select id="findByCondition" resultMap="RM_${className}">
+		SELECT
+		<include refid="columns" />
+		FROM ${table.sqlName}
+		<include refid="findByCondition_where" />
+	</select>
+</mapper>
+
