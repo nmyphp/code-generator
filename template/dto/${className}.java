@@ -4,11 +4,6 @@
 <#assign classNameLower = className?uncap_first> 
 package ${basepackage}.dto;
 
-/**
- * 
- * @author chenlongjs
- * @date 2016年8月12日 下午1:57:06
- */
 public class ${className}{
  
 	<#list table.columns as column>
