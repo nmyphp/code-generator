@@ -11,8 +11,8 @@
 	<entry key="outRoot">/Users/chenlong/Documents/generator_codes</entry>
 	<!-- 需要移除的表名前缀,使用逗号进行分隔多个前缀,示例值: t_,v_ -->
 	<entry key="tableRemovePrefixes"></entry>
-	<entry key="jdbc_username">dev_writer</entry>
-	<entry key="jdbc_password">dev_writer</entry>
+	<entry key="jdbc_username">test</entry>
+	<entry key="jdbc_password">test</entry>
 	<!-- 数据库类型至java类型映射  -->
 	<entry key="java_typemapping.java.sql.Timestamp">java.util.Date</entry>
 	<entry key="java_typemapping.java.sql.Date">java.util.Date</entry>
