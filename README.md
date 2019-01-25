@@ -29,7 +29,7 @@ public abstract SqlSessionTemplate getCurSqlSessionTemplate();
 public abstract String getStatementNamespace();
 ```
 
-Getting Start
+### Getting Start
 #### 1.设置数据库配置
 修改resources/generator.xml
 
